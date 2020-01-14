@@ -1,0 +1,74 @@
+version: "3.7"
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+networks: 
+    mynet:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.30.111.0/24"
+
+services:
+    prometheus: 
+        image: "prom/prometheus:v2.15.1"
+        volumes: 
+            - ./prometheus:/etc/prometheus
+            - prometheus_data:/prometheus
+        command:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--web.console.libraries=/etc/prometheus/console_libraries'
+          - '--web.console.templates=/etc/prometheus/consoles'
+          - '--storage.tsdb.retention.time=15m'
+          - '--web.enable-lifecycle'
+        restart: unless-stopped
+        ports:
+          - "9090:9090"
+        networks:
+          - mynet
+
+    grafana:
+        image: grafana/grafana:6.5.2
+        volumes:
+          - grafana_data:/var/lib/grafana
+        environment:
+          - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+          - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+          - GF_USERS_ALLOW_SIGN_UP=false
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        networks:
+          - mynet
+
+    cortex:
+        image: quay.io/cortexproject/cortex:v0.5.0-rc.0
+        volumes:
+            - "${PWD}/cortex/cortex.aws.yaml:/etc/configs/cortex.aws.yaml"
+        networks:
+            - mynet
+        ports:
+            - "9009:9009"
+        environment:
+            - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+            - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+        command: 
+            - "-config.file=/etc/configs/cortex.aws.yaml"
+            - "-dynamodb.url=dynamodb://us-east-1/"
+            - "-dynamodb.chunk-table.enable-ondemand-throughput-mode=true"
+            - "-dynamodb.chunk-table.inactive-enable-ondemand-throughput-mode=true"
+            - "-dynamodb.chunk-table.inactive-read-throughput.scale.enabled=false"
+            - "-dynamodb.chunk-table.inactive-write-throughput.scale.enabled=false" 
+            - "-dynamodb.chunk-table.read-throughput.scale.enabled=false"
+            - "-dynamodb.chunk-table.write-throughput.scale.enabled=false"
+            - "-dynamodb.periodic-table.enable-ondemand-throughput-mode=true"
+            - "-dynamodb.periodic-table.inactive-enable-ondemand-throughput-mode=true"
+            - "-dynamodb.periodic-table.inactive-read-throughput.scale.enabled=false"
+            - "-dynamodb.periodic-table.inactive-write-throughput.scale.enabled=false"
+            - "-dynamodb.periodic-table.read-throughput.scale.enabled=false"
+            - "-dynamodb.periodic-table.write-throughput.scale.enabled=false"
+            - "-ingester.max-chunk-age=2m"   #write quickly
+            - "-ingester.chunk-age-jitter=20s"   #write quickly

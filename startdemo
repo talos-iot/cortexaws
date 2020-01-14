@@ -1,0 +1,10 @@
+
+if [[ -z "${AWS_ACCESS_KEY_ID}" ]] || [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+	echo "You need to assign correct credentials to the environment variables"
+	echo "AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
+	echo "For example:"
+    echo 'export AWS_ACCESS_KEY_ID="your access key kere'
+else
+	docker-compose up -d --build
+fi
+
