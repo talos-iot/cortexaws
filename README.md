@@ -47,7 +47,7 @@ You should now be able to add Cortex as a datasource in Grafana (default user an
 
 Run any query.  You should be able to see the same data in Grafana (querying Cortex) as in Prometheus.  
 
-Log into your AWS DynamoDB dashboard.  You should see (at least) 2 tables: one for chunks and one for the index.  They are both pre-pended with `cortexaws_`.  They should also be set to On-Demand scaling (rather than provisioned capacity).  This is done to reduce the cost of this demo.  To save cost, Cortex has some fancy auto-scaling features that let you have provisioned capacity for your active tables and On-Demand for older less active tables.  Configuring this feature is outside the scope of this demo.
+Log into your AWS DynamoDB dashboard.  You should see (at least) 2 tables: one for chunks and one for the index.  They are both pre-pended with `cortexaws_`, because this is the string we put inthe schema section of the cortex config file.  They should also be set to On-Demand scaling (rather than provisioned capacity).  This is done to reduce the cost of this demo.  To save cost, Cortex has some fancy auto-scaling features that let you have provisioned capacity for your active tables and On-Demand for older less active tables.  Configuring this feature is outside the scope of this demo.
 
 Go have a cup of coffee.  In a few minutes, Cortex should start to populate these tables with data.
 
