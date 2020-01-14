@@ -54,10 +54,10 @@ schema:
     object_store: aws-dynamo
     schema: v10
     index:
-      prefix: minicort_index_
+      prefix: cortexaws_index_
       period: 168h
     chunks:
-      prefix: minicort_chunks_
+      prefix: cortexaws_chunks_
       period: 168h
       
 

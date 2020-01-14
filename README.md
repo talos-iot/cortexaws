@@ -47,7 +47,7 @@ You should now be able to add Cortex as a datasource in Grafana (default user an
 
 Run any query.  You should be able to see the same data in Grafana (querying Cortex) as in Prometheus.  
 
-Log into your AWS DynamoDB dashboard.  You should see (at least) 2 tables: one for chunks and one for the index.  They are both pre-pended with `cortdemo_`.  They should also be set to On-Demand scaling (rather than provisioned capacity).  This is done to reduce the cost of this demo.  To save cost, Cortex has some fancy auto-scaling features that let you have provisioned capacity for your active tables and On-Demand for older less active tables.  Configuring this feature is outside the scope of this demo.
+Log into your AWS DynamoDB dashboard.  You should see (at least) 2 tables: one for chunks and one for the index.  They are both pre-pended with `cortexaws_`.  They should also be set to On-Demand scaling (rather than provisioned capacity).  This is done to reduce the cost of this demo.  To save cost, Cortex has some fancy auto-scaling features that let you have provisioned capacity for your active tables and On-Demand for older less active tables.  Configuring this feature is outside the scope of this demo.
 
 Go have a cup of coffee.  In a few minutes, Cortex should start to populate these tables with data.
 
@@ -55,6 +55,7 @@ Once you see the files start to come in, verify again that you can see data in b
 
 ```
 docker stop cortexaws_prometheus_1
+docker rm cortexaws_prometheus_1
 docker volume rm cortexaws_prometheus_data
 docker-compose up -d --build prometheus
 ```
@@ -73,8 +74,8 @@ docker network rm cortexaws_mynet
 
 Delete the DynamoDB tables.  You can do this on the web console or by
 ```
-aws dynamodb delete-table --table-name cortdemo_index_2610
-aws dynamodb delete-table --table-name cortdemo_chunks_2610
+aws dynamodb delete-table --table-name cortexaws_index_2610
+aws dynamodb delete-table --table-name cortexaws_chunks_2610
 ```
 Note that you may have to substitute a different number above.
 
