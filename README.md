@@ -11,19 +11,18 @@ docker-compose version 1.25.0, build 0a186604
 ```
 
 
-We will use the single instance, single process version of Cortex, but omitting the `-target` command line argument and letting Cortex default to using all the microserveices.
+We will use the single instance, single process version of Cortex.  Omitting the `-target` command line argument instructs Cortex to use all the microservices.
 
 ## Set up
 
-After git cloning this get your AWS credentials stored as environment variables.  
+Git clone this, then store your AWS credentials as environment variables.  
 
 ```
 export AWS_ACCESS_KEY_ID=<your access key>
 export AWS_SECRET_ACCESS_KEY=<your secret>
 ```
 
-
-Also, you should edit the cortex/cortex.aws.yaml file.  Find the schema section.  This section tells Cortex how to route the chunks.  You could, for example, use different chunk or index stores for data scraped at different times.  This is useful as a way to update from (say) local storage to DynamoDB.
+Edit the `cortex/cortex.aws.yaml` file.  Find the schema section.  This section tells Cortex how to route the chunks.  You could, for example, use different chunk or index stores for data scraped at different times.  If you were already running Cortex in production, this is useful as a pathway to upgrade from (say) local storage to DynamoDB.
 
 For this demo, you'll want to change the `from` date to something recent like yesterday.  Otherwise, Cortex will pre-create 1 table for every 168h (1 week) and you'll end up with a lot of tables in your DynamoDB.
 ```
@@ -44,19 +43,19 @@ This should show that you have 3 docker containers running: Prometheus, Grafana,
 
 ## Verifying durable writes
 
-You should now be able to add Cortex as a datasource in Grafana (default user and password is `admin`).  Add a datasource and put `http://cortex:9009/api/prom` as the URL.  This works because Grafana and Cortex are on the same docker network (minimalcortex\_mynet) and so are reachable by name.
+You should now be able to add Cortex as a datasource in Grafana (default user and password is `admin`).  Add a datasource and put `http://cortex:9009/api/prom` as the URL.  This works because Grafana and Cortex are on the same docker network (cortexaws\_mynet) and so are reachable by name.
 
 Run any query.  You should be able to see the same data in Grafana (querying Cortex) as in Prometheus.  
 
-Log into your AWS DynamoDB dashboard.  You should see (at least) 2 tables: one for chunks and one for the index.  They are both pre-pended with `minicort_`.  They should also be set to On-Demand scaling (rather than provisioned capacity).  This is done to reduce the cost of this demo.  To save cost, Cortex has some fancy auto-scaling features that let you have provisioned capacity for your active tables and On-Demand for older less active tables.  Configuring this feature is outside the scope of this demo.
+Log into your AWS DynamoDB dashboard.  You should see (at least) 2 tables: one for chunks and one for the index.  They are both pre-pended with `cortdemo_`.  They should also be set to On-Demand scaling (rather than provisioned capacity).  This is done to reduce the cost of this demo.  To save cost, Cortex has some fancy auto-scaling features that let you have provisioned capacity for your active tables and On-Demand for older less active tables.  Configuring this feature is outside the scope of this demo.
 
 Go have a cup of coffee.  In a few minutes, Cortex should start to populate these tables with data.
 
 Once you see the files start to come in, verify again that you can see data in both Prometheus and Grafana.  Next we are going to destroy the data in Prometheus, and verify that it is indeed still available to Grafana.  
 
 ```
-docker stop minimalcortex_prometheus_1
-docker volume rm minimalcortex_prometheus_data
+docker stop cortexaws_prometheus_1
+docker volume rm cortexaws_prometheus_data
 docker-compose up -d --build prometheus
 ```
 
@@ -67,15 +66,15 @@ This destroys the Prometheus data volume.  If you query Prometheus, you should o
 Clean up all the docker containers, volumes, and network
 ```
 docker-compose stop
-docker rm minimalcortex_prometheus_1 minimalcortex_cortex_1 minimalcortex_grafana_1
-docker volume rm minimalcortex_prometheus_data minimalcortex_grafana_data
-docker network rm minimalcortex_mynet
+docker rm cortexaws_prometheus_1 cortexaws_cortex_1 cortexaws_grafana_1
+docker volume rm cortexaws_prometheus_data cortexaws_grafana_data
+docker network rm cortexaws_mynet
 ```
 
 Delete the DynamoDB tables.  You can do this on the web console or by
 ```
-aws dynamodb delete-table --table-name minicort_index_2610
-aws dynamodb delete-table --table-name minicort_chunks_2610
+aws dynamodb delete-table --table-name cortdemo_index_2610
+aws dynamodb delete-table --table-name cortdemo_chunks_2610
 ```
 Note that you may have to substitute a different number above.
 
